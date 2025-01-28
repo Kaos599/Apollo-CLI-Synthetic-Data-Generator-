@@ -1,41 +1,37 @@
 import click
 import json
-import click
+import rich_click as click
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.prompt import IntPrompt, Confirm, Prompt 
 from rich.text import Text
 from rich.box import ROUNDED
+from rich.prompt import IntPrompt, Confirm, Prompt, FloatPrompt
 
-
-from apollo.generators.binary import BinaryGenerator
-from apollo.generators.weighted import WeightedGenerator
-from apollo.generators.genai import GeminiGenAIModel
-
-from apollo.utils.output import save_csv, save_jsonl, save_yaml
+# Configure rich-click
+click.rich_click.USE_RICH_MARKUP = True
+click.rich_click.SHOW_METAVARS_COLUMN = False
+click.rich_click.APPEND_METAVARS_HELP = True
 
 console = Console()
 
-def create_menu_table(title: str, options: list) -> Table:
-    """Create a beautiful menu table using Rich"""
-    table = Table(show_header=False, box=ROUNDED, expand=True, border_style="blue")
-    table.add_column("Option", style="cyan", width=4)
-    table.add_column("Description", style="white")
-
-    for idx, (option, description) in enumerate(options, 1):
-        table.add_row(f"{idx}", description)
-
-    return Panel(table, title=f"[bold blue]{title}[/bold blue]", border_style="blue")
-
-@click.group(context_settings={'help_option_names': ['-h', '--help']})
+@click.group(
+    context_settings={'help_option_names': ['-h', '--help']},
+    invoke_without_command=True  # Add this to enable running without commands
+)
 @click.version_option(package_name='apollo-cli')
-def cli():
-    """Apollo CLI: Your Synthetic Data Generation Tool."""
-    # Create welcome banner
+@click.pass_context
+def cli(ctx):
+    """[magenta]Apollo CLI[/magenta]: Your [bold]Synthetic Data Generation[/bold] Tool."""
+    if ctx.invoked_subcommand is None:
+        # Show interactive mode only when no command is specified
+        show_interactive_menu()
+
+def show_interactive_menu():
+    """Display the rich interactive menu"""
     welcome_text = Text()
     welcome_text.append("⚡ Welcome to ", style="magenta")
-    welcome_text.append("Apollo CLI", style="magenta")
+    welcome_text.append("Apollo CLI", style="magenta bold")
     welcome_text.append(" ⚡", style="bold blue")
 
     console.print("\n")
@@ -59,7 +55,7 @@ def cli():
                 choices=[str(i) for i in range(1, 6)],
                 show_choices=False
             )
-        except click.Abort:
+        except KeyboardInterrupt:
             console.print("\n[red]Aborted! Exiting...[/red]")
             break
 
