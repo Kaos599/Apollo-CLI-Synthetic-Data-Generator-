@@ -10,7 +10,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'apollo=apollo.main:cli',
+            'apollo=apollo.cli.commands:cli',  
         ],
     },
 )
