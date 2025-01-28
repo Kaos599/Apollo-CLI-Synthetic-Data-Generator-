@@ -6,7 +6,7 @@ from rich.progress import track
 
 from apollo.generators.binary import BinaryGenerator
 from apollo.generators.weighted import WeightedGenerator
-from apollo.generators.genai import GeminiGenAIModel, 
+from apollo.generators.genai import GeminiGenAIModel
 # from apollo.generators.faker import FakerGenerator
 from apollo.utils.output import save_csv, save_jsonl, save_yaml
 
