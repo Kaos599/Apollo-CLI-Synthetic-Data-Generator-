@@ -4,7 +4,7 @@ import click
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.prompt import IntPrompt, Confirm, Prompt  # Changed to Rich prompts
+from rich.prompt import IntPrompt, Confirm, Prompt 
 from rich.text import Text
 from rich.box import ROUNDED
 
@@ -32,7 +32,7 @@ def create_menu_table(title: str, options: list) -> Table:
 @click.version_option(package_name='apollo-cli')
 def cli():
     """Apollo CLI: Your Synthetic Data Generation Tool."""
-    
+    # Create welcome banner
     welcome_text = Text()
     welcome_text.append("⚡ Welcome to ", style="magenta")
     welcome_text.append("Apollo CLI", style="magenta")
@@ -53,28 +53,25 @@ def cli():
 
         console.print(create_menu_table("Main Menu", main_menu_options))
 
-        questions = [
-            inquirer.List('choice',
-                          message="\n[bold cyan]Enter your choice[/bold cyan]",
-                          choices=['1', '2', '3', '4', '5', 'Exit'],  
-                          carousel=True) 
-        ]
-        answers = inquirer.prompt(questions, console=False) 
-        if answers is None: 
-            console.print("Exiting interactive mode. Goodbye!")
+        try:
+            choice = IntPrompt.ask(
+                "\n[bold cyan]Enter your choice (1-5)[/bold cyan]",
+                choices=[str(i) for i in range(1, 6)],
+                show_choices=False
+            )
+        except click.Abort:
+            console.print("\n[red]Aborted! Exiting...[/red]")
             break
 
-        choice = answers['choice']
-
-        if choice == '1' or choice == 'Generate Data': 
+        if choice == 1:
             handle_generate_data_interactive()
-        elif choice == '2' or choice == 'Curate Data':
+        elif choice == 2:
             console.print(Panel("[yellow]Curate Data feature coming soon![/yellow]", border_style="yellow"))
-        elif choice == '3' or choice == 'Manage API Keys':
+        elif choice == 3:
             console.print(Panel("[yellow]API Key Management feature coming soon![/yellow]", border_style="yellow"))
-        elif choice == '4' or choice == 'Manage Prompts':
+        elif choice == 4:
             console.print(Panel("[yellow]Prompt Management feature coming soon![/yellow]", border_style="yellow"))
-        elif choice == '5' or choice == 'Exit':
+        elif choice == 5:
             console.print(Panel("👋 Thank you for using Apollo CLI. Goodbye!", border_style="blue"))
             break
 
