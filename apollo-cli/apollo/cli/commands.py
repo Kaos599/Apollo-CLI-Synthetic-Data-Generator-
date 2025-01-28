@@ -35,8 +35,8 @@ def cli():
     """Apollo CLI: Your Synthetic Data Generation Tool."""
     # Create welcome banner
     welcome_text = Text()
-    welcome_text.append("⚡ Welcome to ", style="bold blue")
-    welcome_text.append("Apollo CLI", style="bold yellow")
+    welcome_text.append("⚡ Welcome to ", style="magenta")
+    welcome_text.append("Apollo CLI", style="magenta")
     welcome_text.append(" ⚡", style="bold blue")
 
     console.print("\n")
