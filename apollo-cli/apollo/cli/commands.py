@@ -1,19 +1,18 @@
 import click
 import json
+import click
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.prompt import Confirm  
-from rich.progress import track
+from rich.prompt import IntPrompt, Confirm, Prompt  # Changed to Rich prompts
 from rich.text import Text
 from rich.box import ROUNDED
 
-import inquirer  # Import inquirer
 
 from apollo.generators.binary import BinaryGenerator
 from apollo.generators.weighted import WeightedGenerator
 from apollo.generators.genai import GeminiGenAIModel
-# from apollo.generators.faker import FakerGenerator
+
 from apollo.utils.output import save_csv, save_jsonl, save_yaml
 
 console = Console()
@@ -33,7 +32,7 @@ def create_menu_table(title: str, options: list) -> Table:
 @click.version_option(package_name='apollo-cli')
 def cli():
     """Apollo CLI: Your Synthetic Data Generation Tool."""
-    # Create welcome banner
+    
     welcome_text = Text()
     welcome_text.append("⚡ Welcome to ", style="magenta")
     welcome_text.append("Apollo CLI", style="magenta")
@@ -57,17 +56,17 @@ def cli():
         questions = [
             inquirer.List('choice',
                           message="\n[bold cyan]Enter your choice[/bold cyan]",
-                          choices=['1', '2', '3', '4', '5', 'Exit'],  # Added 'Exit' to choices for inquirer
-                          carousel=True) # Optional: for better scrolling in long lists
+                          choices=['1', '2', '3', '4', '5', 'Exit'],  
+                          carousel=True) 
         ]
-        answers = inquirer.prompt(questions, console=False) # console=False to prevent inquirer messing with rich console
-        if answers is None: # Handle Ctrl+C or Esc
+        answers = inquirer.prompt(questions, console=False) 
+        if answers is None: 
             console.print("Exiting interactive mode. Goodbye!")
             break
 
         choice = answers['choice']
 
-        if choice == '1' or choice == 'Generate Data': # Inquirer returns chosen value, not just index
+        if choice == '1' or choice == 'Generate Data': 
             handle_generate_data_interactive()
         elif choice == '2' or choice == 'Curate Data':
             console.print(Panel("[yellow]Curate Data feature coming soon![/yellow]", border_style="yellow"))
@@ -96,12 +95,12 @@ def handle_generate_data_interactive():
         questions = [
             inquirer.List('data_type_choice',
                           message="\n[bold cyan]Choose data type to generate[/bold cyan]",
-                          choices=['1', '2', '3', '4', '5', 'Back'], # Added 'Back' to choices
+                          choices=['1', '2', '3', '4', '5', 'Back'], 
                           carousel=True)
         ]
         answers = inquirer.prompt(questions, console=False)
         if answers is None:
-            break # Go back to main menu if cancelled
+            break 
 
         data_type_choice = answers['data_type_choice']
 
@@ -114,7 +113,7 @@ def handle_generate_data_interactive():
         elif data_type_choice == '4' or data_type_choice == 'GenAI Data':
             generate_genai_data_interactive()
         elif data_type_choice == '5' or data_type_choice == 'Back':
-            break # Back to main menu
+            break 
 
 def generate_binary_data_interactive():
     """Interactive binary data generation with improved UI using inquirer"""
@@ -133,7 +132,7 @@ def generate_binary_data_interactive():
     ]
     answers = inquirer.prompt(questions, console=False)
     if answers is None:
-        return # User cancelled
+        return 
 
     probability = float(answers['probability'])
     num_entries = int(answers['num_entries'])
@@ -230,7 +229,7 @@ def generate_genai_data_interactive():
         generate_genai_data_cli('placeholder', prompt_text, schema_file, num_samples, output_file, output_format)
 
 
-# ---  CLI Command Implementations (using _cli suffix - no changes needed in core logic) ---
+
 
 @cli.group()
 def generate():
