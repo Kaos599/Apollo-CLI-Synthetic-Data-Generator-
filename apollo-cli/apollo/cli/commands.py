@@ -1,96 +1,222 @@
 import click
 import json
 from rich.console import Console
+from rich.panel import Panel
+from rich.layout import Layout
+from rich.table import Table
 from rich.prompt import Prompt, Confirm
 from rich.progress import track
+from rich.style import Style
+from rich.text import Text
+from rich.box import ROUNDED
 
 from apollo.generators.binary import BinaryGenerator
 from apollo.generators.weighted import WeightedGenerator
 from apollo.generators.genai import GeminiGenAIModel
-# from apollo.generators.faker import FakerGenerator
 from apollo.utils.output import save_csv, save_jsonl, save_yaml
 
 console = Console()
 
+def create_menu_table(title: str, options: list) -> Table:
+    """Create a beautiful menu table using Rich"""
+    table = Table(show_header=False, box=ROUNDED, expand=True, border_style="blue")
+    table.add_column("Option", style="cyan", width=4)
+    table.add_column("Description", style="white")
+
+    for idx, (option, description) in enumerate(options, 1):
+        table.add_row(f"{idx}", description)
+
+    return Panel(table, title=f"[bold blue]{title}[/bold blue]", border_style="blue")
+
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
 @click.version_option(package_name='apollo-cli')
 def cli():
-    """
-    [bold blue]Apollo CLI[/bold blue]: Your [bold green]Synthetic Data Generation Tool[/bold green].
+    """Apollo CLI: Your Synthetic Data Generation Tool."""
+    # Create welcome banner
+    welcome_text = Text()
+    welcome_text.append("⚡ Welcome to ", style="bold blue")
+    welcome_text.append("Apollo CLI", style="bold yellow")
+    welcome_text.append(" ⚡", style="bold blue")
 
-    [dim]Run 'apollo --help' for general options and 'apollo <command> --help' for command-specific help.[/dim]
-    """
-    console.print("[bold blue]Welcome to Apollo CLI Interactive Mode![/bold blue]")
+    console.print("\n")
+    console.print(Panel(welcome_text, border_style="blue", box=ROUNDED))
+    console.print("\n")
+
     while True:
-        console.print("\n[bold]Main Menu:[/bold]")
-        console.print("1. Generate Data")
-        console.print("2. Curate Data (Coming Soon)")
-        console.print("3. Manage API Keys (Coming Soon)")
-        console.print("4. Manage Prompts (Coming Soon)")
-        console.print("5. Exit")
+        main_menu_options = [
+            ("Generate Data", "Generate synthetic data using various methods"),
+            ("Curate Data", "Curate and validate generated data (Coming Soon)"),
+            ("Manage API Keys", "Configure API keys for GenAI models (Coming Soon)"),
+            ("Manage Prompts", "Manage system prompts and templates (Coming Soon)"),
+            ("Exit", "Exit Apollo CLI")
+        ]
 
-        choice = Prompt.ask("Enter your choice", choices=['1', '2', '3', '4', '5'], default='1')
+        console.print(create_menu_table("Main Menu", main_menu_options))
+
+        choice = Prompt.ask(
+            "\n[bold cyan]Enter your choice[/bold cyan]",
+            choices=['1', '2', '3', '4', '5'],
+            default='1'
+        )
 
         if choice == '1':
             handle_generate_data_interactive()
         elif choice == '2':
-            console.print("[yellow]Curate Data - Coming Soon![/yellow]")
+            console.print(Panel("[yellow]Curate Data feature coming soon![/yellow]", border_style="yellow"))
         elif choice == '3':
-            console.print("[yellow]Manage API Keys - Coming Soon![/yellow]")
+            console.print(Panel("[yellow]API Key Management feature coming soon![/yellow]", border_style="yellow"))
         elif choice == '4':
-            console.print("[yellow]Manage Prompts - Coming Soon![/yellow]")
+            console.print(Panel("[yellow]Prompt Management feature coming soon![/yellow]", border_style="yellow"))
         elif choice == '5':
-            console.print("Exiting interactive mode. Goodbye!")
+            console.print(Panel("👋 Thank you for using Apollo CLI. Goodbye!", border_style="blue"))
             break
-        else:
-            console.print("[bold red]Invalid choice.[/bold red]")
-
 
 def handle_generate_data_interactive():
-    """Handles interactive data generation menu."""
+    """Handles interactive data generation menu with improved UI"""
     while True:
-        console.print("\n[bold]Generate Data Menu:[/bold]")
-        console.print("1. Binary Data (Yes/No)")
-        console.print("2. Weighted Data")
-        console.print("3. Faker Data")
-        console.print("4. GenAI Data (Placeholder)")
-        console.print("5. Back to Main Menu")
+        data_options = [
+            ("Binary Data", "Generate Yes/No binary data"),
+            ("Weighted Data", "Generate data with custom weights"),
+            ("Faker Data", "Generate data using Faker library"),
+            ("GenAI Data", "Generate data using AI models (Placeholder)"),
+            ("Back", "Return to main menu")
+        ]
 
-        data_type_choice = Prompt.ask("Choose data type to generate", choices=['1', '2', '3', '4', '5'], default='1')
+        console.print("\n")
+        console.print(create_menu_table("Generate Data", data_options))
+
+        data_type_choice = Prompt.ask(
+            "\n[bold cyan]Choose data type to generate[/bold cyan]",
+            choices=['1', '2', '3', '4', '5'],
+            default='1'
+        )
 
         if data_type_choice == '1':
-            probability = Prompt.ask("Enter probability for 'Yes' (0.0-1.0)", float, default=0.5)
-            num_entries = Prompt.ask("Enter number of entries to generate", int, default=100)
-            output_file = Prompt.ask("Enter output file path", default="binary_data.csv")
-            output_format = Prompt.ask("Choose output format", choices=['csv', 'jsonl', 'yaml'], default='csv')
-            generate_binary_data_cli(probability, num_entries, output_file, output_format)
+            generate_binary_data_interactive()
         elif data_type_choice == '2':
-            choices_str = Prompt.ask("Enter weighted choices (e.g., 'A:0.5,B:0.3,C:0.2')")
-            num_entries = Prompt.ask("Enter number of entries to generate", int, default=100)
-            output_file = Prompt.ask("Enter output file path", default="weighted_data.csv")
-            output_format = Prompt.ask("Choose output format", choices=['csv', 'jsonl', 'yaml'], default='csv')
-            generate_weighted_data_cli(choices_str, num_entries, output_file, output_format)
+            generate_weighted_data_interactive()
         elif data_type_choice == '3':
-            provider = Prompt.ask("Enter Faker provider (e.g., 'name', 'address', 'text')")
-            method = Prompt.ask("Enter Faker method (e.g., 'name', 'city', 'sentence')")
-            num_entries = Prompt.ask("Enter number of entries to generate", int, default=100)
-            output_file = Prompt.ask("Enter output file path", default="faker_data.csv")
-            output_format = Prompt.ask("Choose output format", choices=['csv', 'jsonl', 'yaml'], default='csv')
-            generate_faker_data_cli(provider, method, num_entries, output_file, output_format)
+            generate_faker_data_interactive()
         elif data_type_choice == '4':
-            prompt_text = Prompt.ask("Enter GenAI prompt")
-            schema_file = Prompt.ask("Enter path to schema file (optional, press Enter to skip)", default=None)
-            num_samples = Prompt.ask("Enter number of samples to generate", int, default=10)
-            output_file = Prompt.ask("Enter output file path", default="genai_data.jsonl")
-            output_format = Prompt.ask("Choose output format", choices=['jsonl', 'yaml', 'csv'], default='jsonl')
-            generate_genai_data_cli('placeholder', prompt_text, schema_file, num_samples, output_file, output_format)
+            generate_genai_data_interactive()
         elif data_type_choice == '5':
             break
-        else:
-            console.print("[bold red]Invalid choice.[/bold red]")
+
+def generate_binary_data_interactive():
+    """Interactive binary data generation with improved UI"""
+    console.print("\n")
+    console.print(Panel("[bold]Binary Data Generation[/bold]", border_style="blue"))
+
+    probability = float(Prompt.ask(
+        "Enter probability for 'Yes' (0.0-1.0)",
+        default="0.5"
+    ))
+    num_entries = int(Prompt.ask(
+        "Enter number of entries to generate",
+        default="100"
+    ))
+    output_file = Prompt.ask(
+        "Enter output file path",
+        default="binary_data.csv"
+    )
+    output_format = Prompt.ask(
+        "Choose output format",
+        choices=['csv', 'jsonl', 'yaml'],
+        default='csv'
+    )
+
+    with console.status("[bold blue]Generating binary data...") as status:
+        generate_binary_data_cli(probability, num_entries, output_file, output_format)
+
+def generate_weighted_data_interactive():
+    """Interactive weighted data generation with improved UI"""
+    console.print("\n")
+    console.print(Panel("[bold]Weighted Data Generation[/bold]", border_style="blue"))
+
+    choices_str = Prompt.ask(
+        "Enter weighted choices (e.g., 'A:0.5,B:0.3,C:0.2')",
+        default="A:0.5,B:0.5"
+    )
+    num_entries = int(Prompt.ask(
+        "Enter number of entries to generate",
+        default="100"
+    ))
+    output_file = Prompt.ask(
+        "Enter output file path",
+        default="weighted_data.csv"
+    )
+    output_format = Prompt.ask(
+        "Choose output format",
+        choices=['csv', 'jsonl', 'yaml'],
+        default='csv'
+    )
+
+    with console.status("[bold blue]Generating weighted data...") as status:
+        generate_weighted_data_cli(choices_str, num_entries, output_file, output_format)
+
+def generate_faker_data_interactive():
+    """Interactive Faker data generation with improved UI"""
+    console.print("\n")
+    console.print(Panel("[bold]Faker Data Generation[/bold]", border_style="blue"))
+
+    provider = Prompt.ask(
+        "Enter Faker provider (e.g., 'name', 'address', 'text')",
+        default="name"
+    )
+    method = Prompt.ask(
+        "Enter Faker method (e.g., 'name', 'city', 'sentence')",
+        default="name"
+    )
+    num_entries = int(Prompt.ask(
+        "Enter number of entries to generate",
+        default="100"
+    ))
+    output_file = Prompt.ask(
+        "Enter output file path",
+        default="faker_data.csv"
+    )
+    output_format = Prompt.ask(
+        "Choose output format",
+        choices=['csv', 'jsonl', 'yaml'],
+        default='csv'
+    )
+
+    with console.status("[bold blue]Generating faker data...") as status:
+        generate_faker_data_cli(provider, method, num_entries, output_file, output_format)
+
+def generate_genai_data_interactive():
+    """Interactive GenAI data generation with improved UI (Placeholder)"""
+    console.print("\n")
+    console.print(Panel("[bold]GenAI Data Generation (Placeholder)[/bold]", border_style="blue"))
+    console.print(Panel("[yellow]GenAI data generation is a placeholder. Implementation coming soon.[/yellow]", border_style="yellow"))
+
+    prompt_text = Prompt.ask(
+        "Enter GenAI prompt",
+        default="Generate a short example text."
+    )
+    schema_file = Prompt.ask(
+        "Enter path to schema file (optional, press Enter to skip)",
+        default=None
+    )
+    num_samples = int(Prompt.ask(
+        "Enter number of samples to generate",
+        default="10"
+    ))
+    output_file = Prompt.ask(
+        "Enter output file path",
+        default="genai_data.jsonl"
+    )
+    output_format = Prompt.ask(
+        "Choose output format",
+        choices=['jsonl', 'yaml', 'csv'],
+        default='jsonl'
+    )
+
+    with console.status("[bold blue]Generating GenAI data (placeholder)...") as status:
+        generate_genai_data_cli('placeholder', prompt_text, schema_file, num_samples, output_file, output_format)
 
 
-# ---  CLI Command Implementations ---
+# ---  CLI Command Implementations (using _cli suffix to differentiate from interactive functions) ---
 
 @cli.group()
 def generate():
@@ -240,7 +366,7 @@ def curate():
 
     [yellow]This feature is under development and will be available in a future version.[/yellow]
     """
-    console.print("Run 'apollo curate --help' for data curation options.")
+    console.print(Panel("[yellow]Curate Data feature coming soon![/yellow]", border_style="yellow"))
 
 @cli.command()
 def add_key():
@@ -248,7 +374,7 @@ def add_key():
 
     [yellow]This feature is under development and will be available in a future version.[/yellow]
     """
-    console.print("Run 'apollo add-key --help' for API key management.")
+    console.print(Panel("[yellow]API Key Management feature coming soon![/yellow]", border_style="yellow"))
 
 @cli.command()
 def add_prompt():
@@ -256,4 +382,4 @@ def add_prompt():
 
     [yellow]This feature is under development and will be available in a future version.[/yellow]
     """
-    console.print("Run 'apollo add-prompt --help' for prompt management.")
+    console.print(Panel("[yellow]Prompt Management feature coming soon![/yellow]", border_style="yellow"))
