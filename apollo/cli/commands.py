@@ -6,7 +6,7 @@ from rich.progress import track
 
 from apollo.generators.binary import BinaryGenerator
 from apollo.generators.weighted import WeightedGenerator
-from apollo.generators.genai import GeminiGenAIModel, GenAIModel  # Import GenAIModel
+from apollo.generators.genai import GeminiGenAIModel, GenAIModel  
 from apollo.generators.faker import FakerGenerator
 from apollo.utils.output import save_csv, save_jsonl, save_yaml
 
@@ -28,7 +28,7 @@ def cli():
         choice = Prompt.ask("Enter your choice", choices=['1', '2', '3', '4', '5'], default='1')
 
         if choice == '1':
-            handle_generate_data_interactive() # Function to handle interactive data generation
+            handle_generate_data_interactive() 
         elif choice == '2':
             console.print("[yellow]Curate Data - Coming Soon![/yellow]")
         elif choice == '3':
@@ -49,7 +49,7 @@ def handle_generate_data_interactive():
         console.print("1. Binary Data (Yes/No)")
         console.print("2. Weighted Data")
         console.print("3. Faker Data")
-        console.print("4. GenAI Data (Placeholder)") # Update when GenAI is fully implemented
+        console.print("4. GenAI Data (Placeholder)") 
         console.print("5. Back to Main Menu")
 
         data_type_choice = Prompt.ask("Choose data type to generate", choices=['1', '2', '3', '4', '5'], default='1')
@@ -59,34 +59,34 @@ def handle_generate_data_interactive():
             num_entries = Prompt.ask("Enter number of entries to generate", int, default=100)
             output_file = Prompt.ask("Enter output file path", default="binary_data.csv")
             output_format = Prompt.ask("Choose output format", choices=['csv', 'jsonl', 'yaml'], default='csv')
-            generate_binary_data_cli(probability, num_entries, output_file, output_format) # Call CLI function
+            generate_binary_data_cli(probability, num_entries, output_file, output_format) 
         elif data_type_choice == '2':
             choices_str = Prompt.ask("Enter weighted choices (e.g., 'A:0.5,B:0.3,C:0.2')")
             num_entries = Prompt.ask("Enter number of entries to generate", int, default=100)
             output_file = Prompt.ask("Enter output file path", default="weighted_data.csv")
             output_format = Prompt.ask("Choose output format", choices=['csv', 'jsonl', 'yaml'], default='csv')
-            generate_weighted_data_cli(choices_str, num_entries, output_file, output_format) # Call CLI function
+            generate_weighted_data_cli(choices_str, num_entries, output_file, output_format) 
         elif data_type_choice == '3':
             provider = Prompt.ask("Enter Faker provider (e.g., 'name', 'address', 'text')")
             method = Prompt.ask("Enter Faker method (e.g., 'name', 'city', 'sentence')")
             num_entries = Prompt.ask("Enter number of entries to generate", int, default=100)
             output_file = Prompt.ask("Enter output file path", default="faker_data.csv")
             output_format = Prompt.ask("Choose output format", choices=['csv', 'jsonl', 'yaml'], default='csv')
-            generate_faker_data_cli(provider, method, num_entries, output_file, output_format) # Call CLI function
+            generate_faker_data_cli(provider, method, num_entries, output_file, output_format) 
         elif data_type_choice == '4':
             prompt_text = Prompt.ask("Enter GenAI prompt")
-            schema_file = Prompt.ask("Enter path to schema file (optional, press Enter to skip)", default=None) # Optional schema for now
+            schema_file = Prompt.ask("Enter path to schema file (optional, press Enter to skip)", default=None) 
             num_samples = Prompt.ask("Enter number of samples to generate", int, default=10)
             output_file = Prompt.ask("Enter output file path", default="genai_data.jsonl")
             output_format = Prompt.ask("Choose output format", choices=['jsonl', 'yaml', 'csv'], default='jsonl')
-            generate_genai_data_cli('placeholder', prompt_text, schema_file, num_samples, output_file, output_format) # Call CLI function with placeholder model
+            generate_genai_data_cli('placeholder', prompt_text, schema_file, num_samples, output_file, output_format) 
         elif data_type_choice == '5':
-            break # Back to main menu
+            break 
         else:
             console.print("[bold red]Invalid choice.[/bold red]")
 
 
-# ---  CLI Command Implementations (using _cli suffix to differentiate from interactive functions) ---
+
 
 @cli.group()
 def generate():
@@ -99,7 +99,7 @@ def generate():
 @click.option('--num-entries', type=int, required=True, help='Number of entries to generate.')
 @click.option('--output', type=click.Path(), required=True, help='Output file path.')
 @click.option('--format', type=click.Choice(['csv', 'jsonl', 'yaml']), default='csv', help='Output format.')
-def generate_binary_data_cli(probability, num_entries, output, format): # _cli suffix
+def generate_binary_data_cli(probability, num_entries, output, format): 
     """Generate binary response data (Yes/No)."""
     generator = BinaryGenerator(probability)
     data = generator.generate_data(num_entries)
@@ -120,7 +120,7 @@ def generate_binary_data_cli(probability, num_entries, output, format): # _cli s
 @click.option('--num-entries', type=int, required=True, help='Number of entries to generate.')
 @click.option('--output', type=click.Path(), required=True, help='Output file path.')
 @click.option('--format', type=click.Choice(['csv', 'jsonl', 'yaml']), default='csv', help='Output format.')
-def generate_weighted_data_cli(choices_str, num_entries, output, format): # _cli suffix
+def generate_weighted_data_cli(choices_str, num_entries, output, format): 
     """Generate weighted response data."""
     try:
         generator = WeightedGenerator(choices_str)
@@ -146,7 +146,7 @@ def generate_weighted_data_cli(choices_str, num_entries, output, format): # _cli
 @click.option('--num-entries', type=int, required=True, help='Number of entries to generate.')
 @click.option('--output', type=click.Path(), required=True, help='Output file path.')
 @click.option('--format', type=click.Choice(['csv', 'jsonl', 'yaml']), default='csv', help='Output format.')
-def generate_faker_data_cli(provider, method, num_entries, output, format): # _cli suffix
+def generate_faker_data_cli(provider, method, num_entries, output, format): 
     """Generate data using Faker library providers."""
     try:
         generator = FakerGenerator(provider, method)
@@ -172,11 +172,11 @@ def generate_faker_data_cli(provider, method, num_entries, output, format): # _c
 @generate.command('genai')
 @click.option('--model-type', type=click.Choice(['placeholder', 'gemini']), default='placeholder', help='GenAI model type.')
 @click.option('--prompt', type=str, required=True, help='Prompt for GenAI data generation.')
-@click.option('--schema', type=click.Path(exists=True), required=False, help='Path to JSON schema file (for structured output, if supported by model).') # Schema is optional for now
+@click.option('--schema', type=click.Path(exists=True), required=False, help='Path to JSON schema file (for structured output, if supported by model).') 
 @click.option('--num-samples', type=int, default=10, help='Number of samples to generate.')
 @click.option('--output', type=click.Path(), required=True, help='Output file path.')
 @click.option('--format', type=click.Choice(['jsonl', 'yaml', 'csv']), default='jsonl', help='Output format.')
-def generate_genai_data_cli(model_type, prompt, schema, num_samples, output, format): # _cli suffix
+def generate_genai_data_cli(model_type, prompt, schema, num_samples, output, format): 
     """Generate data using GenAI models (Gemini, etc.)."""
     try:
         if model_type == 'placeholder':
@@ -184,7 +184,7 @@ def generate_genai_data_cli(model_type, prompt, schema, num_samples, output, for
             genai_model = GenAIModel()
         elif model_type == 'gemini':
             console.print("[yellow]Using Gemini GenAI Model.[/yellow]")
-            genai_model = GeminiGenAIModel() # Use Gemini model
+            genai_model = GeminiGenAIModel() 
         else:
             raise ValueError(f"Unknown model type: {model_type}")
 
@@ -194,7 +194,7 @@ def generate_genai_data_cli(model_type, prompt, schema, num_samples, output, for
         list(progress_bar)
 
         if format == 'csv':
-            save_csv(data, output) # Might need to flatten JSON for CSV - to be improved
+            save_csv(data, output) 
         elif format == 'jsonl':
             save_jsonl(data, output)
         elif format == 'yaml':
@@ -202,7 +202,7 @@ def generate_genai_data_cli(model_type, prompt, schema, num_samples, output, for
         console.print(f"[green]{model_type.capitalize()} GenAI data saved to '{output}' in {format} format.[/green]")
 
     except ValueError as e:
-        console.print(f"[bold red]Configuration Error:[/bold red] {e}") # For API key not set, etc.
+        console.print(f"[bold red]Configuration Error:[/bold red] {e}") 
     except Exception as e:
         console.print(f"[bold red]Error during GenAI generation:[/bold red] {e}")
 
@@ -210,14 +210,14 @@ def generate_genai_data_cli(model_type, prompt, schema, num_samples, output, for
 @cli.command()
 def curate():
     """Curate generated data."""
-    console.print("Run 'apollo curate --help' for data curation options.") # Placeholder for now
+    console.print("Run 'apollo curate --help' for data curation options.") 
 
 @cli.command()
 def add_key():
     """Add API keys for GenAI models."""
-    console.print("Run 'apollo add-key --help' for API key management.") # Placeholder for now
+    console.print("Run 'apollo add-key --help' for API key management.") 
 
 @cli.command()
 def add_prompt():
     """Add and manage system prompts."""
-    console.print("Run 'apollo add-prompt --help' for prompt management.") # Placeholder for now
+    console.print("Run 'apollo add-prompt --help' for prompt management.") 
