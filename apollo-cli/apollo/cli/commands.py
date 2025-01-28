@@ -6,14 +6,14 @@ from rich.progress import track
 
 from apollo.generators.binary import BinaryGenerator
 from apollo.generators.weighted import WeightedGenerator
-from apollo.generators.genai import GeminiGenAIModel
-#from apollo.generators.faker import FakerGenerator
+from apollo.generators.genai import GeminiGenAIModel, GenAIModel  
+from apollo.generators.faker import FakerGenerator
 from apollo.utils.output import save_csv, save_jsonl, save_yaml
 
 console = Console()
 
-@click.group()
-@click.version_option()
+@click.group(context_settings={'help_option_names': ['-h', '--help']})
+@click.version_option(package_name='apollo-cli')  
 def cli():
     """Apollo CLI: Your Synthetic Data Generation Tool."""
     console.print("[bold blue]Welcome to Apollo CLI Interactive Mode![/bold blue]")
