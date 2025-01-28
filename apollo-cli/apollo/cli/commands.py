@@ -2,17 +2,18 @@ import click
 import json
 from rich.console import Console
 from rich.panel import Panel
-from rich.layout import Layout
 from rich.table import Table
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Confirm  
 from rich.progress import track
-from rich.style import Style
 from rich.text import Text
 from rich.box import ROUNDED
+
+import inquirer  # Import inquirer
 
 from apollo.generators.binary import BinaryGenerator
 from apollo.generators.weighted import WeightedGenerator
 from apollo.generators.genai import GeminiGenAIModel
+# from apollo.generators.faker import FakerGenerator
 from apollo.utils.output import save_csv, save_jsonl, save_yaml
 
 console = Console()
@@ -53,26 +54,33 @@ def cli():
 
         console.print(create_menu_table("Main Menu", main_menu_options))
 
-        choice = Prompt.ask(
-            "\n[bold cyan]Enter your choice[/bold cyan]",
-            choices=['1', '2', '3', '4', '5'],
-            default='1'
-        )
+        questions = [
+            inquirer.List('choice',
+                          message="\n[bold cyan]Enter your choice[/bold cyan]",
+                          choices=['1', '2', '3', '4', '5', 'Exit'],  # Added 'Exit' to choices for inquirer
+                          carousel=True) # Optional: for better scrolling in long lists
+        ]
+        answers = inquirer.prompt(questions, console=False) # console=False to prevent inquirer messing with rich console
+        if answers is None: # Handle Ctrl+C or Esc
+            console.print("Exiting interactive mode. Goodbye!")
+            break
 
-        if choice == '1':
+        choice = answers['choice']
+
+        if choice == '1' or choice == 'Generate Data': # Inquirer returns chosen value, not just index
             handle_generate_data_interactive()
-        elif choice == '2':
+        elif choice == '2' or choice == 'Curate Data':
             console.print(Panel("[yellow]Curate Data feature coming soon![/yellow]", border_style="yellow"))
-        elif choice == '3':
+        elif choice == '3' or choice == 'Manage API Keys':
             console.print(Panel("[yellow]API Key Management feature coming soon![/yellow]", border_style="yellow"))
-        elif choice == '4':
+        elif choice == '4' or choice == 'Manage Prompts':
             console.print(Panel("[yellow]Prompt Management feature coming soon![/yellow]", border_style="yellow"))
-        elif choice == '5':
+        elif choice == '5' or choice == 'Exit':
             console.print(Panel("👋 Thank you for using Apollo CLI. Goodbye!", border_style="blue"))
             break
 
 def handle_generate_data_interactive():
-    """Handles interactive data generation menu with improved UI"""
+    """Handles interactive data generation menu with improved UI using inquirer"""
     while True:
         data_options = [
             ("Binary Data", "Generate Yes/No binary data"),
@@ -85,138 +93,144 @@ def handle_generate_data_interactive():
         console.print("\n")
         console.print(create_menu_table("Generate Data", data_options))
 
-        data_type_choice = Prompt.ask(
-            "\n[bold cyan]Choose data type to generate[/bold cyan]",
-            choices=['1', '2', '3', '4', '5'],
-            default='1'
-        )
+        questions = [
+            inquirer.List('data_type_choice',
+                          message="\n[bold cyan]Choose data type to generate[/bold cyan]",
+                          choices=['1', '2', '3', '4', '5', 'Back'], # Added 'Back' to choices
+                          carousel=True)
+        ]
+        answers = inquirer.prompt(questions, console=False)
+        if answers is None:
+            break # Go back to main menu if cancelled
 
-        if data_type_choice == '1':
+        data_type_choice = answers['data_type_choice']
+
+        if data_type_choice == '1' or data_type_choice == 'Binary Data':
             generate_binary_data_interactive()
-        elif data_type_choice == '2':
+        elif data_type_choice == '2' or data_type_choice == 'Weighted Data':
             generate_weighted_data_interactive()
-        elif data_type_choice == '3':
+        elif data_type_choice == '3' or data_type_choice == 'Faker Data':
             generate_faker_data_interactive()
-        elif data_type_choice == '4':
+        elif data_type_choice == '4' or data_type_choice == 'GenAI Data':
             generate_genai_data_interactive()
-        elif data_type_choice == '5':
-            break
+        elif data_type_choice == '5' or data_type_choice == 'Back':
+            break # Back to main menu
 
 def generate_binary_data_interactive():
-    """Interactive binary data generation with improved UI"""
+    """Interactive binary data generation with improved UI using inquirer"""
     console.print("\n")
     console.print(Panel("[bold]Binary Data Generation[/bold]", border_style="blue"))
 
-    probability = float(Prompt.ask(
-        "Enter probability for 'Yes' (0.0-1.0)",
-        default="0.5"
-    ))
-    num_entries = int(Prompt.ask(
-        "Enter number of entries to generate",
-        default="100"
-    ))
-    output_file = Prompt.ask(
-        "Enter output file path",
-        default="binary_data.csv"
-    )
-    output_format = Prompt.ask(
-        "Choose output format",
-        choices=['csv', 'jsonl', 'yaml'],
-        default='csv'
-    )
+    questions = [
+        inquirer.Text('probability', message="Enter probability for 'Yes' (0.0-1.0)", default="0.5", validate=lambda _, x: 0<=float(x)<=1),
+        inquirer.Text('num_entries', message="Enter number of entries to generate", default="100", validate=lambda _, x: x.isdigit()),
+        inquirer.Text('output_file', message="Enter output file path", default="binary_data.csv"),
+        inquirer.List('output_format',
+                      message="Choose output format",
+                      choices=['csv', 'jsonl', 'yaml'],
+                      default='csv',
+                      carousel=True)
+    ]
+    answers = inquirer.prompt(questions, console=False)
+    if answers is None:
+        return # User cancelled
+
+    probability = float(answers['probability'])
+    num_entries = int(answers['num_entries'])
+    output_file = answers['output_file']
+    output_format = answers['output_format']
 
     with console.status("[bold blue]Generating binary data...") as status:
         generate_binary_data_cli(probability, num_entries, output_file, output_format)
 
 def generate_weighted_data_interactive():
-    """Interactive weighted data generation with improved UI"""
+    """Interactive weighted data generation with improved UI using inquirer"""
     console.print("\n")
     console.print(Panel("[bold]Weighted Data Generation[/bold]", border_style="blue"))
 
-    choices_str = Prompt.ask(
-        "Enter weighted choices (e.g., 'A:0.5,B:0.3,C:0.2')",
-        default="A:0.5,B:0.5"
-    )
-    num_entries = int(Prompt.ask(
-        "Enter number of entries to generate",
-        default="100"
-    ))
-    output_file = Prompt.ask(
-        "Enter output file path",
-        default="weighted_data.csv"
-    )
-    output_format = Prompt.ask(
-        "Choose output format",
-        choices=['csv', 'jsonl', 'yaml'],
-        default='csv'
-    )
+    questions = [
+        inquirer.Text('choices_str', message="Enter weighted choices (e.g., 'A:0.5,B:0.3,C:0.2')", default="A:0.5,B:0.5"),
+        inquirer.Text('num_entries', message="Enter number of entries to generate", default="100", validate=lambda _, x: x.isdigit()),
+        inquirer.Text('output_file', message="Enter output file path", default="weighted_data.csv"),
+        inquirer.List('output_format',
+                      message="Choose output format",
+                      choices=['csv', 'jsonl', 'yaml'],
+                      default='csv',
+                      carousel=True)
+    ]
+    answers = inquirer.prompt(questions, console=False)
+    if answers is None:
+        return
+
+    choices_str = answers['choices_str']
+    num_entries = int(answers['num_entries'])
+    output_file = answers['output_file']
+    output_format = answers['output_format']
 
     with console.status("[bold blue]Generating weighted data...") as status:
         generate_weighted_data_cli(choices_str, num_entries, output_file, output_format)
 
 def generate_faker_data_interactive():
-    """Interactive Faker data generation with improved UI"""
+    """Interactive Faker data generation with improved UI using inquirer"""
     console.print("\n")
     console.print(Panel("[bold]Faker Data Generation[/bold]", border_style="blue"))
 
-    provider = Prompt.ask(
-        "Enter Faker provider (e.g., 'name', 'address', 'text')",
-        default="name"
-    )
-    method = Prompt.ask(
-        "Enter Faker method (e.g., 'name', 'city', 'sentence')",
-        default="name"
-    )
-    num_entries = int(Prompt.ask(
-        "Enter number of entries to generate",
-        default="100"
-    ))
-    output_file = Prompt.ask(
-        "Enter output file path",
-        default="faker_data.csv"
-    )
-    output_format = Prompt.ask(
-        "Choose output format",
-        choices=['csv', 'jsonl', 'yaml'],
-        default='csv'
-    )
+    questions = [
+        inquirer.Text('provider', message="Enter Faker provider (e.g., 'name', 'address', 'text')", default="name"),
+        inquirer.Text('method', message="Enter Faker method (e.g., 'name', 'city', 'sentence')", default="name"),
+        inquirer.Text('num_entries', message="Enter number of entries to generate", default="100", validate=lambda _, x: x.isdigit()),
+        inquirer.Text('output_file', message="Enter output file path", default="faker_data.csv"),
+        inquirer.List('output_format',
+                      message="Choose output format",
+                      choices=['csv', 'jsonl', 'yaml'],
+                      default='csv',
+                      carousel=True)
+    ]
+    answers = inquirer.prompt(questions, console=False)
+    if answers is None:
+        return
+
+    provider = answers['provider']
+    method = answers['method']
+    num_entries = int(answers['num_entries'])
+    output_file = answers['output_file']
+    output_format = answers['output_format']
 
     with console.status("[bold blue]Generating faker data...") as status:
         generate_faker_data_cli(provider, method, num_entries, output_file, output_format)
 
 def generate_genai_data_interactive():
-    """Interactive GenAI data generation with improved UI (Placeholder)"""
+    """Interactive GenAI data generation with improved UI using inquirer (Placeholder)"""
     console.print("\n")
     console.print(Panel("[bold]GenAI Data Generation (Placeholder)[/bold]", border_style="blue"))
     console.print(Panel("[yellow]GenAI data generation is a placeholder. Implementation coming soon.[/yellow]", border_style="yellow"))
 
-    prompt_text = Prompt.ask(
-        "Enter GenAI prompt",
-        default="Generate a short example text."
-    )
-    schema_file = Prompt.ask(
-        "Enter path to schema file (optional, press Enter to skip)",
-        default=None
-    )
-    num_samples = int(Prompt.ask(
-        "Enter number of samples to generate",
-        default="10"
-    ))
-    output_file = Prompt.ask(
-        "Enter output file path",
-        default="genai_data.jsonl"
-    )
-    output_format = Prompt.ask(
-        "Choose output format",
-        choices=['jsonl', 'yaml', 'csv'],
-        default='jsonl'
-    )
+    questions = [
+        inquirer.Text('prompt_text', message="Enter GenAI prompt", default="Generate a short example text."),
+        inquirer.Text('schema_file', message="Enter path to schema file (optional, press Enter to skip)", default=None),
+        inquirer.Text('num_samples', message="Enter number of samples to generate", default="10", validate=lambda _, x: x.isdigit()),
+        inquirer.Text('output_file', message="Enter output file path", default="genai_data.jsonl"),
+        inquirer.List('output_format',
+                      message="Choose output format",
+                      choices=['jsonl', 'yaml', 'csv'],
+                      default='jsonl',
+                      carousel=True)
+    ]
+    answers = inquirer.prompt(questions, console=False)
+    if answers is None:
+        return
+
+    prompt_text = answers['prompt_text']
+    schema_file = answers['schema_file']
+    num_samples = int(answers['num_samples'])
+    output_file = answers['output_file']
+    output_format = answers['output_format']
 
     with console.status("[bold blue]Generating GenAI data (placeholder)...") as status:
         generate_genai_data_cli('placeholder', prompt_text, schema_file, num_samples, output_file, output_format)
 
 
-# ---  CLI Command Implementations (using _cli suffix to differentiate from interactive functions) ---
+# ---  CLI Command Implementations (using _cli suffix - no changes needed in core logic) ---
 
 @cli.group()
 def generate():
