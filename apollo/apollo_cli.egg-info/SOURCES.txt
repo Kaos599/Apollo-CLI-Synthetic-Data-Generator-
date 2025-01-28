@@ -1,0 +1,17 @@
+setup.py
+apollo_cli.egg-info/PKG-INFO
+apollo_cli.egg-info/SOURCES.txt
+apollo_cli.egg-info/dependency_links.txt
+apollo_cli.egg-info/entry_points.txt
+apollo_cli.egg-info/requires.txt
+apollo_cli.egg-info/top_level.txt
+cli/__init__.py
+cli/commands.py
+config/__init__.py
+generators/__init__.py
+generators/binary.py
+generators/genai.py
+generators/weighted.py
+utils/__init__.py
+utils/animations.py
+utils/output.py
